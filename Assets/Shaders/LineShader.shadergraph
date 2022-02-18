@@ -392,7 +392,7 @@
     "m_Guid": {
         "m_GuidSerialized": "61a7b3f6-df1a-4d24-9289-2131e465be2f"
     },
-    "m_Name": "StartColor",
+    "m_Name": "Start color",
     "m_DefaultReferenceName": "Color_37e1792c1176425b9cee15b0c2e56e42",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -416,7 +416,7 @@
     "m_Guid": {
         "m_GuidSerialized": "cf592b37-4d81-4d26-913c-d201f2648f55"
     },
-    "m_Name": "EndColor",
+    "m_Name": "End color",
     "m_DefaultReferenceName": "Color_40a92c0fc60942d0a0dd73db39082878",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
