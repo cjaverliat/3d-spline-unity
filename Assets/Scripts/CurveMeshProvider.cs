@@ -11,6 +11,8 @@ using Vector3 = UnityEngine.Vector3;
 public class CurveMeshProvider : MonoBehaviour
 {
     public Vector3[] points;
+
+    public float thickness = 1;
     
     public Mesh lineMesh;
     public Mesh jointMesh;
@@ -20,6 +22,7 @@ public class CurveMeshProvider : MonoBehaviour
         Assert.IsNotNull(lineMesh);
         Assert.IsNotNull(jointMesh);
         Assert.IsTrue(points.Length > 0);
+        Assert.IsTrue(thickness > 0);
 
         var totalLengthSquared = 0.0f;
         
@@ -40,12 +43,12 @@ public class CurveMeshProvider : MonoBehaviour
             var segmentLengthSquared = (points[i] - points[i + 1]).sqrMagnitude;
             var t0 = lengthSquaredOffset / totalLengthSquared;
             var t1 = (lengthSquaredOffset + segmentLengthSquared) / totalLengthSquared;
-            combine[meshIdx++] = CreateJointMesh(points[i], 1f, Color.Lerp(Color.white, Color.black, t0));
-            combine[meshIdx++] = CreateLineMesh(points[i], points[i + 1], 1f, Color.Lerp(Color.white, Color.black, t0), Color.Lerp(Color.white, Color.black, t1));
+            combine[meshIdx++] = CreateJointMesh(points[i], thickness, Color.Lerp(Color.white, Color.black, t0));
+            combine[meshIdx++] = CreateLineMesh(points[i], points[i + 1], thickness, Color.Lerp(Color.white, Color.black, t0), Color.Lerp(Color.white, Color.black, t1));
             lengthSquaredOffset += segmentLengthSquared;
         }
         
-        combine[nMeshes - 1] = CreateJointMesh(points[points.Length - 1], 1f, Color.black);
+        combine[nMeshes - 1] = CreateJointMesh(points[points.Length - 1], thickness, Color.black);
         
         gameObject.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
         gameObject.GetComponent<MeshFilter>().mesh.Optimize();
