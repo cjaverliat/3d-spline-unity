@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -6,11 +7,17 @@ using Matrix4x4 = UnityEngine.Matrix4x4;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
+[Serializable]
+public class SplineSection
+{
+    public List<Vector3> points;
+}
+
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-public class CurveMeshProvider : MonoBehaviour
+public class SplineMeshProvider : MonoBehaviour
 {
-    public Vector3[] points;
+    public List<SplineSection> sections;
 
     public float thickness = 1;
     
@@ -21,37 +28,64 @@ public class CurveMeshProvider : MonoBehaviour
     {
         Assert.IsNotNull(lineMesh);
         Assert.IsNotNull(jointMesh);
-        Assert.IsTrue(points.Length > 0);
+        Assert.IsTrue(sections.Count > 0 && sections.TrueForAll(section => section.points.Count > 0));
         Assert.IsTrue(thickness > 0);
+        UpdateMesh();
+    }
 
+    private void UpdateMesh()
+    {
+        var nMeshes = 0;
         var totalLengthSquared = 0.0f;
-        
-        for (var i = 0; i < points.Length - 1; i++)
+
+        foreach (var section in sections)
         {
-            totalLengthSquared += (points[i] - points[i + 1]).sqrMagnitude;
+            nMeshes += section.points.Count + section.points.Count - 1;
+            
+            for (var i = 0; i < section.points.Count - 1; i++)
+            {
+                totalLengthSquared += (section.points[i] - section.points[i + 1]).sqrMagnitude;
+            }
         }
 
-
-        var nMeshes = points.Length + points.Length - 1;
-        var combine = new CombineInstance[points.Length + points.Length - 1];
+        var combine = new CombineInstance[nMeshes];
 
         var meshIdx = 0;
         var lengthSquaredOffset = 0.0f;
-        
-        for (var i = 0; i < points.Length - 1; i++)
+
+        foreach (var section in sections)
         {
-            var segmentLengthSquared = (points[i] - points[i + 1]).sqrMagnitude;
-            var t0 = lengthSquaredOffset / totalLengthSquared;
-            var t1 = (lengthSquaredOffset + segmentLengthSquared) / totalLengthSquared;
-            combine[meshIdx++] = CreateJointMesh(points[i], thickness, Color.Lerp(Color.white, Color.black, t0));
-            combine[meshIdx++] = CreateLineMesh(points[i], points[i + 1], thickness, Color.Lerp(Color.white, Color.black, t0), Color.Lerp(Color.white, Color.black, t1));
-            lengthSquaredOffset += segmentLengthSquared;
+            for (var i = 0; i < section.points.Count - 1; i++)
+            {
+                var segmentLengthSquared = (section.points[i] - section.points[i + 1]).sqrMagnitude;
+                var t0 = lengthSquaredOffset / totalLengthSquared;
+                var t1 = (lengthSquaredOffset + segmentLengthSquared) / totalLengthSquared;
+                combine[meshIdx++] = CreateJointMesh(section.points[i], thickness, Color.Lerp(Color.white, Color.black, t0));
+                combine[meshIdx++] = CreateLineMesh(section.points[i], section.points[i + 1], thickness,
+                    Color.Lerp(Color.white, Color.black, t0), Color.Lerp(Color.white, Color.black, t1));
+                lengthSquaredOffset += segmentLengthSquared;
+            }
+
+            // Line cap
+            combine[meshIdx++] = CreateJointMesh(section.points[section.points.Count - 1], thickness, Color.Lerp(Color.white, Color.black, lengthSquaredOffset / totalLengthSquared));
         }
-        
-        combine[nMeshes - 1] = CreateJointMesh(points[points.Length - 1], thickness, Color.black);
         
         gameObject.GetComponent<MeshFilter>().mesh.CombineMeshes(combine);
         gameObject.GetComponent<MeshFilter>().mesh.Optimize();
+    }
+
+    public void SetSections(List<SplineSection> sections)
+    {
+        Assert.IsTrue(sections.Count > 0 && sections.TrueForAll(section => section.points.Count > 0));
+        this.sections = sections;
+        UpdateMesh();
+    }
+
+    public void SetThickness(float thickness)
+    {
+        Assert.IsTrue(thickness >= 1);
+        this.thickness = thickness;
+        UpdateMesh();
     }
 
     private CombineInstance CreateJointMesh(Vector3 position, float radius, Color color)
