@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LineMaterial
-  m_Shader: {fileID: -6465566751694194690, guid: 22fa37f2b492fdf4fbaf30cbf6905ca9, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 7a2a83d7ba6f060429e952d594776804, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 1
